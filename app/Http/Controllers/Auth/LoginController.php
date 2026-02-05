@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use App\Models\Clinic;
+
+class LoginController extends Controller
+{
+    public function showLoginForm()
+    {
+        return Inertia::render('Auth/Login');
+    }
+
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            $request->session()->regenerate();
+
+            // Store clinic_id in session for the MultiClinicScope
+            if (Auth::user()->clinic_id) {
+                session(['active_clinic_id' => Auth::user()->clinic_id]);
+            }
+
+            return redirect()->intended('/dashboard');
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        session()->forget('active_clinic_id');
+
+        return redirect('/');
+    }
+}
