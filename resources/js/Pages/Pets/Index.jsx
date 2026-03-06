@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AppLayout from '../../Layouts/AppLayout';
 import { Head, Link, useForm, router } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import {
     Plus,
     Search,
@@ -8,24 +9,24 @@ import {
     PawPrint,
     User,
     ChevronRight,
-    MoreVertical,
-    CheckCircle2,
     XCircle,
     X as XIcon,
     Edit3,
     Calendar,
     Activity
 } from 'lucide-react';
+import ConfirmationModal from '../../Components/ConfirmationModal';
 
 const Badge = ({ children, color = 'blue' }) => {
     const colors = {
         blue: 'bg-blue-50 text-primary-blue border-blue-100',
-        green: 'bg-green-50 text-green-700 border-green-100',
+        green: 'bg-emerald-50 text-emerald-700 border-emerald-100',
         orange: 'bg-orange-50 text-orange-700 border-orange-100',
         gray: 'bg-slate-50 text-slate-500 border-slate-100',
+        red: 'bg-red-50 text-danger border-red-100',
     };
     return (
-        <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest border ${colors[color]}`}>
+        <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${colors[color]}`}>
             {children}
         </span>
     );
@@ -34,18 +35,32 @@ const Badge = ({ children, color = 'blue' }) => {
 const Modal = ({ isOpen, onClose, title, children }) => {
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border-gray">
-                <div className="px-8 py-6 border-b border-border-gray flex items-center justify-between bg-slate-50/50">
-                    <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight">{title}</h3>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-all text-slate-400">
-                        <XIcon size={20} />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+            ></motion.div>
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 relative z-10"
+            >
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-1 h-5 bg-primary-blue rounded-full"></div>
+                        <h3 className="text-sm font-bold text-slate-900">{title}</h3>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-white hover:text-danger rounded-lg transition-all text-slate-400 border border-transparent hover:border-danger/10">
+                        <XIcon size={18} />
                     </button>
                 </div>
-                <div className="p-8 max-h-[85vh] overflow-y-auto custom-scrollbar">
+                <div className="p-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
                     {children}
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };
@@ -53,6 +68,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 export default function PetsIndex({ pets, owners, species, breeds }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null, name: '' });
 
     const { data, setData, post, processing, errors, reset } = useForm({
         owner_id: '',
@@ -84,57 +100,53 @@ export default function PetsIndex({ pets, owners, species, breeds }) {
         <AppLayout>
             <Head title="Pets Directory" />
 
-            {/* Header Hub */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
+            {/* Header */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2 uppercase tracking-wide">Pets Directory</h1>
-                    <p className="text-sm font-medium text-slate-500">Manage and view all registered patients in the clinic.</p>
+                    <h1 className="text-xl font-bold text-slate-900">Patients</h1>
+                    <p className="text-slate-500 text-sm mt-0.5">Manage registered pets and their medical history.</p>
                 </div>
 
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-[0_8px_16px_rgba(16,98,255,0.2)] transition-all hover:-translate-y-0.5"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-semibold text-sm shadow-[0_4px_12px_rgba(16,98,255,0.2)] transition-all hover:-translate-y-0.5"
                 >
-                    <Plus size={18} />
-                    Register New Patient
+                    <Plus size={16} />
+                    Register Pet
                 </button>
             </div>
 
-            {/* Toolbar Area */}
-            <div className="flex flex-col md:flex-row gap-4 mb-10">
+            {/* Search Bar */}
+            <div className="flex flex-col md:flex-row gap-3 mb-6">
                 <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                     <input
                         type="text"
-                        placeholder="Search by patient name, owner, or unique ID..."
+                        placeholder="Search by pet name or owner..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full bg-white border border-border-gray pl-12 pr-4 py-3.5 rounded-xl text-sm font-bold focus:ring-2 focus:ring-primary-blue/10 outline-none shadow-sm transition-all text-slate-800"
+                        className="w-full bg-white border border-slate-200 pl-9 pr-4 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none shadow-sm transition-all text-slate-900"
                     />
                 </div>
-                <button className="flex items-center gap-2 px-6 py-3.5 bg-white border border-border-gray text-slate-600 rounded-xl font-bold text-xs uppercase tracking-widest shadow-sm hover:bg-slate-50 transition-all">
-                    <Filter size={18} />
-                    Classification Filter
-                </button>
             </div>
 
             {/* Pets Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {filteredPets.map(pet => (
                     <div
                         key={pet.id}
-                        className="group bg-white rounded-xl border border-border-gray p-8 shadow-sm hover:shadow-xl hover:border-primary-blue/30 transition-all duration-300 relative overflow-hidden flex flex-col"
+                        className="group card-interactive bg-white flex flex-col overflow-hidden"
                     >
-                        <Link href={route('pets.show', pet.id)} className="block flex-1">
-                            <div className="flex items-start justify-between mb-8">
-                                <div className="flex items-center gap-5">
-                                    <div className="w-14 h-14 rounded-xl bg-slate-50 text-primary-blue flex items-center justify-center border border-slate-100 group-hover:bg-primary-blue group-hover:text-white transition-all shadow-sm">
-                                        <PawPrint size={28} />
+                        <Link href={route('pets.show', pet.id)} className="block flex-1 p-5">
+                            <div className="flex items-start justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-11 h-11 rounded-xl bg-slate-50 text-primary-blue flex items-center justify-center border border-slate-100 group-hover:bg-primary-blue group-hover:text-white group-hover:border-primary-blue transition-all">
+                                        <PawPrint size={22} />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-slate-900 group-hover:text-primary-blue transition-colors leading-none mb-2 uppercase tracking-tight">{pet.name}</h3>
-                                        <div className="flex gap-2">
-                                            <Badge color="blue">{pet.species?.name || 'Pet'}</Badge>
+                                        <h3 className="text-base font-bold text-slate-900 group-hover:text-primary-blue transition-colors leading-none mb-1.5">{pet.name}</h3>
+                                        <div className="flex gap-1.5">
+                                            <Badge color="blue">{pet.species?.name || 'Unknown'}</Badge>
                                             <Badge color="gray">{pet.breed?.name || 'Mixed'}</Badge>
                                         </div>
                                     </div>
@@ -144,50 +156,50 @@ export default function PetsIndex({ pets, owners, species, breeds }) {
                                 </Badge>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-50">
-                                <div className="bg-slate-50/50 border border-border-gray rounded-xl p-4 group-hover:bg-white transition-colors">
-                                    <div className="flex items-center gap-2 text-slate-400 mb-1.5">
-                                        <User size={12} />
-                                        <span className="text-[9px] font-bold uppercase tracking-widest leading-none">Guardianship</span>
+                            <div className="grid grid-cols-1 gap-2 pt-3 border-t border-slate-100">
+                                <div className="bg-slate-50/50 border border-slate-100 rounded-lg p-3 group-hover:bg-white transition-colors">
+                                    <div className="flex items-center gap-1.5 text-slate-500 mb-1">
+                                        <User size={11} className="text-primary-blue" />
+                                        <span className="text-xs font-semibold text-slate-400">Owner</span>
                                     </div>
-                                    <p className="text-sm font-bold text-slate-700 leading-none truncate uppercase">{pet.owner.first_name} {pet.owner.last_name}</p>
+                                    <p className="text-sm font-semibold text-slate-900 leading-none truncate">{pet.owner.first_name} {pet.owner.last_name}</p>
                                 </div>
-                                <div className="bg-slate-50/50 border border-border-gray rounded-xl p-4 group-hover:bg-white transition-colors">
-                                    <div className="flex items-center gap-2 text-slate-400 mb-1.5">
-                                        <Calendar size={12} />
-                                        <span className="text-[9px] font-bold uppercase tracking-widest leading-none">Last Clinical Visit</span>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="bg-slate-50/50 border border-slate-100 rounded-lg p-3 group-hover:bg-white transition-colors">
+                                        <div className="flex items-center gap-1.5 text-slate-500 mb-1">
+                                            <Calendar size={11} className="text-primary-blue" />
+                                            <span className="text-xs font-semibold text-slate-400">Last Visit</span>
+                                        </div>
+                                        <p className="text-xs font-semibold text-slate-700 leading-none">Oct 12, 2023</p>
                                     </div>
-                                    <p className="text-sm font-bold text-slate-700 leading-none uppercase">Oct 12, 2023</p>
+                                    <div className="bg-slate-50/50 border border-slate-100 rounded-lg p-3 group-hover:bg-white transition-colors">
+                                        <div className="flex items-center gap-1.5 text-slate-500 mb-1">
+                                            <Activity size={11} className="text-primary-blue" />
+                                            <span className="text-xs font-semibold text-slate-400">Health</span>
+                                        </div>
+                                        <p className="text-xs font-semibold text-emerald-600 leading-none">Stable</p>
+                                    </div>
                                 </div>
                             </div>
                         </Link>
 
-                        <div className="mt-8 flex items-center gap-3 pt-6 border-t border-slate-50">
-                            <Link
-                                href={route('appointments.index', { new: true, pet_id: pet.id })}
-                                className="flex-1 py-3 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95"
-                            >
-                                <Plus size={14} />
-                                Schedule Visit
-                            </Link>
+                        <div className="px-5 pb-4 flex items-center gap-2">
                             <Link
                                 href={route('pets.edit', pet.id)}
-                                className="p-3 text-slate-400 hover:text-primary-blue hover:bg-slate-50 border border-border-gray rounded-xl transition-all shadow-sm"
-                                title="Edit Profile"
+                                className="p-2.5 text-slate-400 hover:text-primary-blue hover:bg-slate-50 border border-slate-100 hover:border-primary-blue/20 rounded-lg transition-all"
+                                title="Edit"
                             >
-                                <Edit3 size={18} />
+                                <Edit3 size={15} />
                             </Link>
                             <button
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    if (confirm('Are you sure you want to permanently delete this patient record?')) {
-                                        router.delete(route('pets.destroy', pet.id));
-                                    }
+                                    setConfirmDelete({ open: true, id: pet.id, name: pet.name });
                                 }}
-                                className="p-3 text-slate-400 hover:text-danger hover:bg-red-50 border border-border-gray rounded-xl transition-all shadow-sm"
-                                title="Delete Record"
+                                className="p-2.5 text-slate-400 hover:text-danger hover:bg-red-50 border border-slate-100 hover:border-danger/20 rounded-lg transition-all"
+                                title="Delete"
                             >
-                                <XCircle size={18} />
+                                <XCircle size={15} />
                             </button>
                         </div>
                     </div>
@@ -195,35 +207,55 @@ export default function PetsIndex({ pets, owners, species, breeds }) {
             </div>
 
             {filteredPets.length === 0 && (
-                <div className="py-24 text-center">
-                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mx-auto mb-6 border border-slate-100 shadow-inner">
-                        <Activity size={40} />
+                <div className="py-16 text-center">
+                    <div className="w-14 h-14 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mx-auto mb-4 border border-slate-100">
+                        <Activity size={28} />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2 uppercase tracking-tight">No Patients Registered</h3>
-                    <p className="text-sm text-slate-500 font-medium max-w-md mx-auto">There are no patient records matching your current criteria. You can start by registering a new patient.</p>
+                    <h3 className="text-base font-semibold text-slate-700 mb-1">No Patients Found</h3>
+                    <p className="text-sm text-slate-400 max-w-md mx-auto">No patient records match your search. Try registering a new patient.</p>
                 </div>
             )}
 
             {/* Registration Modal */}
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Register Patient Intelligence">
-                <form onSubmit={submit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Patient Name</label>
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Register New Pet">
+                <form
+                    onSubmit={submit}
+                    className="space-y-4"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const form = e.currentTarget;
+                            const focusableElements = Array.from(
+                                form.querySelectorAll('input, select, textarea, button[type="submit"]')
+                            ).filter(el => !el.disabled && el.tabIndex !== -1);
+
+                            const index = focusableElements.indexOf(e.target);
+                            if (index > -1 && index < focusableElements.length - 1) {
+                                focusableElements[index + 1].focus();
+                            } else if (index === focusableElements.length - 1) {
+                                form.requestSubmit();
+                            }
+                        }
+                    }}
+                >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Pet Name</label>
                             <input
+                                autoFocus
                                 type="text"
-                                className="w-full bg-slate-50 border border-border-gray px-4 py-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-primary-blue/10 outline-none"
+                                className="w-full bg-slate-50 border border-border-gray px-3.5 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none"
                                 placeholder="Buddy"
                                 value={data.name}
                                 onChange={e => setData('name', e.target.value)}
                             />
-                            {errors.name && <p className="text-danger text-[10px] font-bold mt-1 uppercase leading-none">{errors.name}</p>}
+                            {errors.name && <p className="text-danger text-xs mt-1">{errors.name}</p>}
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Assign Guardian (Owner)</label>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Owner</label>
                             <select
-                                className="w-full bg-slate-50 border border-border-gray px-4 py-3 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none appearance-none"
+                                className="w-full bg-slate-50 border border-border-gray px-3.5 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none appearance-none"
                                 value={data.owner_id}
                                 onChange={e => setData('owner_id', e.target.value)}
                             >
@@ -232,13 +264,13 @@ export default function PetsIndex({ pets, owners, species, breeds }) {
                                     <option key={owner.id} value={owner.id}>{owner.first_name} {owner.last_name}</option>
                                 ))}
                             </select>
-                            {errors.owner_id && <p className="text-danger text-[10px] font-bold mt-1 uppercase leading-none">{errors.owner_id}</p>}
+                            {errors.owner_id && <p className="text-danger text-xs mt-1">{errors.owner_id}</p>}
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Scientific Species</label>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Species</label>
                             <select
-                                className="w-full bg-slate-50 border border-border-gray px-4 py-3 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none appearance-none"
+                                className="w-full bg-slate-50 border border-border-gray px-3.5 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none appearance-none"
                                 value={data.species_id}
                                 onChange={e => setData('species_id', e.target.value)}
                             >
@@ -249,10 +281,10 @@ export default function PetsIndex({ pets, owners, species, breeds }) {
                             </select>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Primary Breed</label>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Breed</label>
                             <select
-                                className="w-full bg-slate-50 border border-border-gray px-4 py-3 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none appearance-none"
+                                className="w-full bg-slate-50 border border-border-gray px-3.5 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none appearance-none"
                                 value={data.breed_id}
                                 onChange={e => setData('breed_id', e.target.value)}
                             >
@@ -263,10 +295,10 @@ export default function PetsIndex({ pets, owners, species, breeds }) {
                             </select>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Assigned Gender</label>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Gender</label>
                             <select
-                                className="w-full bg-slate-50 border border-border-gray px-4 py-3 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none appearance-none"
+                                className="w-full bg-slate-50 border border-border-gray px-3.5 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none appearance-none"
                                 value={data.gender}
                                 onChange={e => setData('gender', e.target.value)}
                             >
@@ -276,28 +308,38 @@ export default function PetsIndex({ pets, owners, species, breeds }) {
                             </select>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Birth Date</label>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Date of Birth</label>
                             <input
                                 type="date"
-                                className="w-full bg-slate-50 border border-border-gray px-4 py-3 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none"
+                                className="w-full bg-slate-50 border border-border-gray px-3.5 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none"
                                 value={data.dob}
                                 onChange={e => setData('dob', e.target.value)}
                             />
                         </div>
                     </div>
 
-                    <div className="pt-6 border-t border-border-gray text-right">
+                    <div className="pt-4 border-t border-border-gray text-right">
                         <button
                             type="submit"
                             disabled={processing}
-                            className="w-full py-4 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-[0_8px_16px_rgba(16,98,255,0.2)] transition-all disabled:opacity-50"
+                            className="w-full py-2.5 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-semibold text-sm shadow-[0_4px_12px_rgba(16,98,255,0.2)] transition-all disabled:opacity-50"
                         >
-                            {processing ? 'Processing Registration...' : 'Commit Patient Registration'}
+                            {processing ? 'Registering...' : 'Register Pet'}
                         </button>
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmationModal
+                isOpen={confirmDelete.open}
+                onClose={() => setConfirmDelete({ ...confirmDelete, open: false })}
+                onConfirm={() => router.delete(route('pets.destroy', confirmDelete.id))}
+                title="Remove Patient Record"
+                message={`Are you sure you want to remove ${confirmDelete.name} from the medical registry? This will permanently delete all clinical history, lab reports, and vaccination records for this patient.`}
+                confirmText="Permanently Delete Record"
+                type="danger"
+            />
         </AppLayout>
     );
 }

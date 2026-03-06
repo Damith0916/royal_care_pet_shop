@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
@@ -31,7 +31,7 @@ class StaffController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
         $validated['clinic_id'] = session('active_clinic_id');
-        $validated['name'] = $validated['first_name'] . ' ' . $validated['last_name'];
+        $validated['name'] = $validated['first_name'].' '.$validated['last_name'];
 
         User::create($validated);
 
@@ -43,7 +43,7 @@ class StaffController extends Controller
         $validated = $request->validate([
             'first_name' => 'sometimes|string|max:255',
             'last_name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $user->id,
+            'email' => 'sometimes|email|unique:users,email,'.$user->id,
             'role_id' => 'sometimes|exists:roles,id',
             'phone' => 'nullable|string|max:20',
         ]);
@@ -60,6 +60,7 @@ class StaffController extends Controller
         }
 
         $user->delete();
+
         return redirect()->back()->with('success', 'Staff member removed.');
     }
 }

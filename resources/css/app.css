@@ -5,28 +5,65 @@
     --color-primary-dark: #0046CC;
     --color-app-bg: #F8FAFC;
     --color-card-bg: #FFFFFF;
-    --color-border-gray: #E5E7EB;
-    --color-text-primary: #374151;
-    --color-text-secondary: #6B7280;
+    --color-border-gray: #E2E8F0;
+    --color-text-primary: #1E293B;
+    --color-text-secondary: #475569;
     --color-success: #10B981;
     --color-danger: #EF4444;
     --color-warning: #F59E0B;
     --color-info: #3B82F6;
     --color-accent: #8B5CF6;
 
-    --radius-xl: 0.75rem;
-    --radius-2xl: 1rem;
+    /* Standardization Tokens */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.25rem;
+    --radius-3xl: 1.5rem;
+
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+    overscroll-behavior-x: none;
 }
 
 @utility bg-app {
     background-color: var(--color-app-bg);
 }
 
-@utility card-shadow {
-    box-shadow: var(--shadow-sm);
+@utility text-muted {
+    color: var(--color-text-secondary);
+}
+
+@utility text-muted-dim {
+    color: #94A3B8;
+    /* Slate 400 - for very specific small labels only */
+}
+
+@utility card-standard {
+    background-color: var(--color-card-bg);
     border: 1px solid var(--color-border-gray);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-sm);
+}
+
+@utility card-interactive {
+    background-color: var(--color-card-bg);
+    border: 1px solid var(--color-border-gray);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    &:hover {
+        box-shadow: var(--shadow-lg);
+        border-color: rgba(16, 98, 255, 0.1);
+        transform: translateY(-2px);
+    }
 }
 
 

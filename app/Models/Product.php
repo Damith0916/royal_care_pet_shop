@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\MultiClinicScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Traits\MultiClinicScope;
 
 class Product extends Model
 {
     use MultiClinicScope, SoftDeletes;
+
     protected $fillable = [
         'clinic_id',
         'name',

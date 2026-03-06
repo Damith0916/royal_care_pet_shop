@@ -2,37 +2,44 @@
 
 namespace App\Models;
 
+use App\Traits\MultiClinicScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Traits\MultiClinicScope;
 
 class MedicalRecord extends Model
 {
     use MultiClinicScope;
-    
+
     protected $table = 'medical_records';
-    
+
     protected $fillable = [
         'clinic_id',
         'pet_id',
         'vet_id',
-        'appointment_id',
         'invoice_id',
         'date_of_record',
-        'reason_for_visit',
+        'complane',
+        'clinical_signs',
+        'lab_findings',
+        'patient_history',
+        'differential_diagnosis',
         'diagnosis',
         'treatment_plan',
         'observations',
         'weight_kg',
-        'temperature_c',
         'blood_pressure',
         'status',
+        'rx_note',
     ];
 
     protected $casts = [
         'date_of_record' => 'datetime',
+        'complane' => 'array',
+        'clinical_signs' => 'array',
+        'lab_findings' => 'array',
+        'patient_history' => 'array',
+        'differential_diagnosis' => 'array',
         'weight_kg' => 'decimal:2',
-        'temperature_c' => 'decimal:2',
     ];
 
     public function clinic(): BelongsTo
@@ -63,11 +70,6 @@ class MedicalRecord extends Model
     public function labResults(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(LabResult::class);
-    }
-
-    public function appointment(): BelongsTo
-    {
-        return $this->belongsTo(Appointment::class);
     }
 
     public function invoice(): BelongsTo

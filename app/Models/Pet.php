@@ -2,16 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\MultiClinicScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Traits\MultiClinicScope;
 
 class Pet extends Model
 {
     use MultiClinicScope, SoftDeletes;
+
     protected $fillable = [
         'clinic_id',
         'owner_id',
@@ -44,11 +44,6 @@ class Pet extends Model
     public function breed(): BelongsTo
     {
         return $this->belongsTo(Breed::class);
-    }
-
-    public function appointments(): HasMany
-    {
-        return $this->hasMany(Appointment::class);
     }
 
     public function medicalRecords(): HasMany

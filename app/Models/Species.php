@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\MultiClinicScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
-use App\Traits\MultiClinicScope;
 
 class Species extends Model
 {
     use MultiClinicScope;
+
     protected $fillable = [
         'clinic_id',
         'name',

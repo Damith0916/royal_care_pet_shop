@@ -2,16 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\MultiClinicScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Traits\MultiClinicScope;
 
 class Owner extends Model
 {
     use MultiClinicScope, SoftDeletes;
+
     protected $fillable = [
         'clinic_id',
         'first_name',
@@ -36,11 +36,6 @@ class Owner extends Model
     public function pets(): HasMany
     {
         return $this->hasMany(Pet::class);
-    }
-
-    public function appointments(): HasMany
-    {
-        return $this->hasMany(Appointment::class);
     }
 
     public function invoices(): HasMany

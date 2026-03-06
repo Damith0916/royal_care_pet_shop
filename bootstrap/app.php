@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \App\Http\Middleware\ClinicMiddleware::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'new-case/bill-preview',
+            'new-case/prescription-preview',
+        ]);
         $middleware->alias([
             'clinic' => \App\Http\Middleware\ClinicMiddleware::class,
         ]);

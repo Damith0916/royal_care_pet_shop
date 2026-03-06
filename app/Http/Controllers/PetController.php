@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pet;
-use App\Models\Owner;
-use App\Models\Species;
 use App\Models\Breed;
+use App\Models\Owner;
+use App\Models\Pet;
+use App\Models\Species;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -34,13 +34,13 @@ class PetController extends Controller
     {
         return Inertia::render('Pets/Show', [
             'pet' => $pet->load([
-                'owner', 'species', 'breed', 'appointments.vet', 
-                'medicalRecords.vet', 
+                'owner', 'species', 'breed',
+                'medicalRecords.vet',
                 'medicalRecords.invoice.items',
-                'medicalRecords.vaccinations', 
-                'medicalRecords.medications.vet', 
+                'medicalRecords.vaccinations',
+                'medicalRecords.medications.vet',
                 'medicalRecords.labResults.vet',
-                'vaccinations', 'medications.vet', 'allergies', 'conditions', 'labResults.vet'
+                'vaccinations', 'medications.vet', 'allergies', 'conditions', 'labResults.vet',
             ]),
             'species' => Species::all(),
             'breeds' => Breed::all(),
@@ -87,17 +87,19 @@ class PetController extends Controller
         ]);
 
         // Fix to ensure optional fields are handled correctly
-        if($request->has('breed_id') && $request->breed_id === "") {
-             $validated['breed_id'] = null;
+        if ($request->has('breed_id') && $request->breed_id === '') {
+            $validated['breed_id'] = null;
         }
 
         $pet->update($validated);
 
         return redirect()->route('pets.index')->with('success', 'Pet details updated.');
     }
+
     public function destroy(Pet $pet)
     {
         $pet->delete();
+
         return redirect()->back()->with('success', 'Pet removed from directory.');
     }
 }

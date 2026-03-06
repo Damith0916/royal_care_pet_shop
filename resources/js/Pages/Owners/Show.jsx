@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import AppLayout from '../../Layouts/AppLayout';
 import { Head, Link } from '@inertiajs/react';
 import {
-    User, Phone, Mail, MapPin, Calendar, Clock, PawPrint,
+    User, Phone, Mail, MapPin, Clock, PawPrint,
     CreditCard, ArrowLeft, Plus, ChevronRight, Edit3,
-    Activity, Receipt, Wallet, Bell, ShieldCheck, Heart
+    Activity, Receipt, Wallet, Bell, ShieldCheck, Heart, Printer
 } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,12 +39,90 @@ const TabButton = ({ active, label, onClick, icon: Icon }) => (
 );
 
 export default function OwnerShow({ owner }) {
+    const { clinic } = usePage().props;
     const [activeTab, setActiveTab] = useState('pets');
 
+    const handlePrint = (inv) => {
+        const printWindow = window.open('', '_blank');
+        const itemRows = (inv.items || []).map(item => `
+        <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #eee; font-size: 12px;">
+            <div style="flex: 1;">
+                <div style="font-weight: bold; text-transform: uppercase;">${item.item_name}</div>
+                <div style="font-size: 10px; color: #666;">${item.quantity} units x LKR ${parseFloat(item.unit_price).toLocaleString()}</div>
+            </div>
+            <div style="font-weight: bold;">LKR ${(item.unit_price * item.quantity).toLocaleString()}</div>
+        </div>
+        `).join('');
+
+        const total = parseFloat(inv.net_amount);
+
+        printWindow.document.write(`
+        <html>
+            <head>
+                <title>Reprint Bill - ${inv.invoice_number}</title>
+                <style>
+                    body { font-family: 'Courier New', Courier, monospace; width: 80mm; padding: 10px; margin: 0; color: #000; }
+                    .header { text-align: center; margin-bottom: 15px; }
+                    .clinic-name { font-size: 18px; font-weight: 900; margin: 0; text-transform: uppercase; }
+                    .contact { font-size: 10px; margin: 5px 0; }
+                    .divider { border-top: 1px dashed #000; margin: 10px 0; }
+                    .summary-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 12px; margin: 3px 0; }
+                    .total { font-size: 16px; margin-top: 10px; border-top: 2px solid #000; padding-top: 5px; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 10px; }
+                    @media print { body { width: 80mm; } }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1 class="clinic-name">${clinic?.name?.toUpperCase() || 'SMART PETCARE'}</h1>
+                    <div class="contact">
+                        ${clinic?.address?.toUpperCase() || 'VETERINARY HEALTH HUB'}<br>
+                        TEL: ${clinic?.phone || 'N/A'}
+                    </div>
+                    <div class="divider"></div>
+                    <div style="font-size: 12px; font-weight: bold;">DUPLICATE RECEIPT</div>
+                    <div style="font-size: 10px;">Original: ${format(parseISO(inv.invoice_date), 'MMM dd, yyyy')}</div>
+                    <div style="font-size: 10px;">Reprinted: ${new Date().toLocaleString()}</div>
+                </div>
+
+                <div class="divider"></div>
+                
+                <div style="font-size: 10px; margin-bottom: 10px;">
+                    INVOICE: #${inv.invoice_number}<br>
+                    OWNER: ${owner.first_name} ${owner.last_name}<br>
+                    PATIENT: ${inv.medical_record?.pet?.name || 'Patient'}
+                </div>
+
+                <div class="divider"></div>
+
+                ${itemRows}
+                
+                <div class="summary-row" style="margin-top: 10px;">
+                    <span>SERVICE CHARGE</span>
+                    <span>LKR ${parseFloat(inv.service_charge || 0).toLocaleString()}</span>
+                </div>
+
+                <div class="summary-row total">
+                    <span>TOTAL</span>
+                    <span>LKR ${total.toLocaleString()}</span>
+                </div>
+
+                <div class="divider"></div>
+                
+                <div class="footer">
+                    THANK YOU FOR CHOOSING SMART PETCARE!<br>
+                    THIS IS A SYSTEM GENERATED DUPLICATE.
+                </div>
+
+                <script>window.print(); setTimeout(() => window.close(), 500);</script>
+            </body>
+        </html>
+        `);
+        printWindow.document.close();
+    };
+
     const stats = [
-        { label: 'Total Pets', value: owner.pets?.length || 0, icon: PawPrint, color: 'text-orange-500', bg: 'bg-orange-50/50' },
-        { label: 'Total Visits', value: owner.appointments?.length || 0, icon: Calendar, color: 'text-blue-500', bg: 'bg-blue-50/50' },
-        { label: 'Outstanding Balance', value: 'LKR 0.00', icon: Wallet, color: 'text-green-500', bg: 'bg-green-50/50' },
+        { label: 'Registered Patients', value: owner.pets?.length || 0, icon: PawPrint, color: 'text-orange-500', bg: 'bg-orange-50/50' },
     ];
 
     return (
@@ -93,8 +172,7 @@ export default function OwnerShow({ owner }) {
 
                 {/* Tab Navigation */}
                 <div className="px-8 border-t border-border-gray bg-slate-50/30 flex items-center overflow-x-auto">
-                    <TabButton active={activeTab === 'pets'} label="Registered Pets" onClick={() => setActiveTab('pets')} icon={PawPrint} />
-                    <TabButton active={activeTab === 'appointments'} label="Visit History" onClick={() => setActiveTab('appointments')} icon={Calendar} />
+                    <TabButton active={activeTab === 'pets'} label="Registered Patients" onClick={() => setActiveTab('pets')} icon={PawPrint} />
                     <TabButton active={activeTab === 'invoices'} label="Billing Overview" onClick={() => setActiveTab('invoices')} icon={Receipt} />
                 </div>
             </div>
@@ -187,59 +265,6 @@ export default function OwnerShow({ owner }) {
                                 </div>
                             )}
 
-                            {activeTab === 'appointments' && (
-                                <div className="bg-white rounded-xl border border-border-gray shadow-sm overflow-hidden">
-                                    <div className="px-8 py-6 border-b border-border-gray bg-slate-50/30 flex items-center justify-between">
-                                        <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2 uppercase tracking-tight">
-                                            <Calendar size={18} className="text-primary-blue" /> Appointment History
-                                        </h3>
-                                    </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left">
-                                            <thead className="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-border-gray">
-                                                <tr>
-                                                    <th className="px-8 py-5">Date & Time</th>
-                                                    <th className="px-8 py-5">Patient</th>
-                                                    <th className="px-8 py-5">Service Type</th>
-                                                    <th className="px-8 py-5 text-right">Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-50">
-                                                {owner.appointments?.map(app => (
-                                                    <tr key={app.id} className="hover:bg-slate-50/50 transition-colors group">
-                                                        <td className="px-8 py-6">
-                                                            <div className="flex flex-col">
-                                                                <span className="font-bold text-slate-900 text-sm uppercase tracking-tight">{format(parseISO(app.datetime), 'MMM dd, yyyy')}</span>
-                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{format(parseISO(app.datetime), 'hh:mm a')}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-8 py-6">
-                                                            <Link href={route('pets.show', app.pet?.id || 1)} className="font-bold text-primary-blue hover:text-primary-dark text-sm flex items-center gap-3 transition-colors uppercase tracking-tight">
-                                                                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-primary-blue group-hover:text-white transition-all shadow-sm">
-                                                                    <PawPrint size={14} />
-                                                                </div>
-                                                                {app.pet?.name || 'Unknown Patient'}
-                                                            </Link>
-                                                        </td>
-                                                        <td className="px-8 py-6 text-xs font-bold text-slate-500 uppercase tracking-widest">Medical Visit</td>
-                                                        <td className="px-8 py-6 text-right">
-                                                            <Badge color={app.status === 'Completed' ? 'green' : 'blue'}>
-                                                                {app.status}
-                                                            </Badge>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                        {!owner.appointments?.length && (
-                                            <div className="py-20 text-center">
-                                                <Calendar size={40} className="mx-auto text-slate-100 mb-4" />
-                                                <p className="text-slate-400 font-bold italic text-sm">No appointment records found for this owner.</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
 
                             {activeTab === 'invoices' && (
                                 <div className="bg-white rounded-xl border border-border-gray shadow-sm overflow-hidden">
@@ -277,9 +302,12 @@ export default function OwnerShow({ owner }) {
                                                             </Badge>
                                                         </td>
                                                         <td className="px-8 py-6 text-right">
-                                                            <Link href={route('billing.show', inv.id)} className="p-3 bg-slate-50 text-slate-400 hover:text-primary-blue hover:bg-white border border-border-gray rounded-xl transition-all inline-block shadow-sm">
-                                                                <ChevronRight size={18} />
-                                                            </Link>
+                                                            <button
+                                                                onClick={() => handlePrint(inv)}
+                                                                className="p-3 bg-slate-50 text-slate-400 hover:text-primary-blue hover:bg-white border border-border-gray rounded-xl transition-all inline-block shadow-sm"
+                                                            >
+                                                                <Printer size={18} />
+                                                            </button>
                                                         </td>
                                                     </tr>
                                                 ))}

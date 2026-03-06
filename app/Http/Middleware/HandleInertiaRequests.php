@@ -23,6 +23,11 @@ class HandleInertiaRequests extends Middleware
      */
     public function version(Request $request): ?string
     {
+        $manifestPath = public_path('build/manifest.json');
+        if (file_exists($manifestPath)) {
+            return md5_file($manifestPath);
+        }
+
         return parent::version($request);
     }
 
@@ -40,7 +45,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user() ? $request->user()->load('role') : null,
             ],
-            'clinic' => config('app.active_clinic'),
+            'clinic' => $request->user() ? \App\Models\Clinic::find(session('active_clinic_id')) : null,
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
                 'success' => fn () => $request->session()->get('success'),

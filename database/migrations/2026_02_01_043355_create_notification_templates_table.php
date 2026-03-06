@@ -20,7 +20,7 @@ return new class extends Migration
                 'Email_VaccinationDue',
                 'SMS_VaccinationDue',
                 'Email_LabResultReady',
-                'Email_InvoiceCreated'
+                'Email_InvoiceCreated',
             ]);
             $table->string('subject')->nullable();
             $table->text('body');

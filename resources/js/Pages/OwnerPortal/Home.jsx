@@ -56,22 +56,6 @@ export default function Home({ owner, clinic }) {
                 ))}
             </div>
 
-            {/* Quick Action/Alerts */}
-            <div className="mt-10 bg-[#1E1E2D] rounded-[32px] p-8 text-white relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-8 opacity-10 transform translate-x-4 -translate-y-4">
-                    <Calendar size={120} />
-                </div>
-                <div className="relative z-10">
-                    <h3 className="text-xl font-bold mb-2">Upcoming Visits?</h3>
-                    <p className="text-white/60 text-sm font-medium leading-relaxed mb-6">
-                        No appointments scheduled. Need a checkup for your pets?
-                    </p>
-                    <button className="w-full py-4 bg-white text-gray-900 rounded-2xl font-bold text-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
-                        Book Appointment
-                        <ArrowUpRight size={16} />
-                    </button>
-                </div>
-            </div>
 
             {/* Health Tips / Feed */}
             <div className="mt-12 space-y-6 pb-10">

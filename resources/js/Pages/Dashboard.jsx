@@ -3,7 +3,6 @@ import AppLayout from '../Layouts/AppLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import {
     Users,
-    Calendar,
     DollarSign,
     PawPrint,
     Activity,
@@ -12,7 +11,8 @@ import {
     TrendingUp,
     Plus,
     ArrowUpRight,
-    Search
+    Search,
+    ShieldOff
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format, parseISO } from 'date-fns';
@@ -20,136 +20,122 @@ import { motion } from 'framer-motion';
 
 const StatCard = ({ title, value, icon: Icon, color, trend }) => {
     const colorMap = {
-        green: 'text-success bg-green-50/50 border-green-100 shadow-green-100/20',
-        blue: 'text-primary-blue bg-blue-50/50 border-blue-100 shadow-blue-100/20',
-        orange: 'text-orange-600 bg-orange-50/50 border-orange-100 shadow-orange-100/20',
-        purple: 'text-purple-600 bg-purple-50/50 border-purple-100 shadow-purple-100/20',
-        red: 'text-danger bg-red-50/50 border-red-100 shadow-red-100/20'
+        green: 'text-success bg-green-50 border-green-100',
+        blue: 'text-primary-blue bg-blue-50 border-blue-100',
+        orange: 'text-orange-600 bg-orange-50 border-orange-100',
+        purple: 'text-purple-600 bg-purple-50 border-purple-100',
+        red: 'text-danger bg-red-50 border-red-100'
     };
     return (
-        <div className="bg-white p-8 rounded-xl border border-border-gray shadow-sm group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-            <div className="flex items-center justify-between mb-6">
-                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] leading-none">{title}</span>
-                <div className={`w-12 h-12 rounded-xl ${colorMap[color]} flex items-center justify-center border-2 border-white shadow-xl transition-all group-hover:scale-110 group-hover:rotate-3`}>
-                    <Icon size={22} />
+        <div className="bg-white p-5 rounded-xl border border-border-gray shadow-sm group hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center justify-between mb-3">
+                <span className="text-slate-500 text-xs font-semibold">{title}</span>
+                <div className={`w-9 h-9 rounded-lg ${colorMap[color]} flex items-center justify-center border transition-all group-hover:scale-105`}>
+                    <Icon size={18} />
                 </div>
             </div>
             <div className="flex items-end justify-between">
-                <h3 className="text-3xl font-bold text-slate-900 tracking-tight leading-none">{value}</h3>
+                <h3 className="text-2xl font-bold text-slate-900 tracking-tight leading-none">{value}</h3>
                 {trend && (
-                    <div className="flex items-center gap-1 text-success font-bold text-[10px] uppercase tracking-widest bg-green-50 px-2 py-1 rounded-md border border-green-100">
+                    <div className="flex items-center gap-1 text-success font-semibold text-xs bg-green-50 px-2 py-1 rounded-md border border-green-100">
                         <ArrowUpRight size={12} />
                         {trend}
                     </div>
                 )}
             </div>
-            <div className="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between group/link cursor-pointer">
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-hover/link:text-primary-blue">Audit Detailed Analysis</span>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between group/link cursor-pointer">
+                <span className="text-xs font-medium text-slate-400 transition-colors group-hover/link:text-primary-blue">View details</span>
                 <ChevronRight size={14} className="text-slate-300 group-hover/link:translate-x-1 group-hover/link:text-primary-blue transition-all" />
             </div>
         </div>
     );
 };
 
-export default function Dashboard({ stats, overview, revenueChart, recentActivities, upcomingSchedule }) {
+export default function Dashboard({ stats, overview, revenueChart, recentActivities }) {
     const handlePeriodChange = (period) => {
         router.get(route('dashboard'), { period }, { preserveState: true, preserveScroll: true, only: ['overview', 'revenueChart'] });
     };
 
     return (
         <AppLayout>
-            <Head title="Operations Intelligence Dashboard" />
-
-            {/* Global Aesthetic Overlay Elements */}
-            <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-primary-blue/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-            <div className="fixed bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/5 blur-[100px] rounded-full translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
+            <Head title="Dashboard" />
 
             <div className="relative z-10">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12">
-                    <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <span className="w-8 h-1 bg-primary-blue rounded-full"></span>
-                            <span className="text-[10px] font-bold text-primary-blue uppercase tracking-[0.3em]">System Operational Status: Optimal</span>
-                        </div>
-                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight uppercase tracking-wide">Intelligence Command</h1>
-                        <p className="text-slate-500 text-sm font-medium mt-1">Real-time synthetic overview of clinical performance vectors.</p>
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+                    <div className="flex flex-col gap-1">
+                        <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Dashboard</h1>
+                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Clinic Intelligence Unit • {overview.period} overview</p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4">
-                        <div className="bg-white p-1.5 rounded-xl border border-border-gray flex shadow-sm">
+                    <div className="flex flex-wrap items-center gap-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+                        <Link
+                            href={route('branch-close.index')}
+                            className="px-6 py-2.5 bg-red-50 hover:bg-red-100 border border-red-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-600 transition-all active:scale-95 shadow-sm"
+                        >
+                            Branch Close
+                        </Link>
+
+                        <div className="w-px h-8 bg-slate-100 mx-1"></div>
+
+                        <div className="flex items-center gap-1">
                             <button
                                 onClick={() => handlePeriodChange('weekly')}
-                                className={`px-6 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${overview.period === 'weekly' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${overview.period === 'weekly' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
                             >
-                                Weekly Sequence
+                                Weekly
                             </button>
                             <button
                                 onClick={() => handlePeriodChange('monthly')}
-                                className={`px-6 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${overview.period === 'monthly' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${overview.period === 'monthly' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
                             >
-                                Monthly Sequence
+                                Monthly
                             </button>
                         </div>
-
-                        <Link
-                            href={route('appointments.index', { new: true })}
-                            className="flex items-center gap-3 px-8 py-3.5 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-[0_12px_24px_rgba(16,98,255,0.3)] transition-all hover:-translate-y-1 active:scale-95"
-                        >
-                            <Plus size={18} />
-                            Initialize Booking
-                        </Link>
                     </div>
                 </div>
 
-                {/* Tactical Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                     <StatCard
-                        title="Revenue Cycle (Today)"
+                        title="Revenue Today"
                         value={`LKR ${parseFloat(overview.revenue).toLocaleString()}`}
                         icon={DollarSign}
                         color="green"
                         trend="+12.5%"
                     />
                     <StatCard
-                        title="Active Sessions"
-                        value={overview.appointments}
-                        icon={Calendar}
-                        color="blue"
-                        trend="+4.2%"
-                    />
-                    <StatCard
-                        title="New Patient Intake"
+                        title="New Patients"
                         value={overview.new_pets}
                         icon={PawPrint}
                         color="orange"
                     />
                     <StatCard
-                        title="Guardian Network"
+                        title="Total Owners"
                         value={stats.totalOwners}
                         icon={Users}
                         color="purple"
                     />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-                    {/* Diagnostic Chart Area */}
-                    <div className="lg:col-span-2 bg-white p-10 rounded-2xl border border-border-gray shadow-sm relative overflow-hidden group">
-                        <div className="flex items-center justify-between mb-10">
+                <div className="grid grid-cols-1 gap-4 mb-6">
+                    {/* Revenue Chart */}
+                    <div className="bg-white p-6 rounded-xl border border-border-gray shadow-sm">
+                        <div className="flex items-center justify-between mb-5">
                             <div>
-                                <h3 className="text-xl font-bold text-slate-900 uppercase tracking-tight">Financial Trajectory</h3>
-                                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Historical revenue synchronization</p>
+                                <h3 className="text-sm font-bold text-slate-900">Revenue Overview</h3>
+                                <p className="text-slate-400 text-xs font-medium mt-0.5">Daily revenue for the selected period</p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-primary-blue shadow-[0_0_8px_rgba(16,98,255,0.4)]"></div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Revenue Path</span>
+                                <div className="w-2 h-2 rounded-full bg-primary-blue shadow-[0_0_6px_rgba(16,98,255,0.4)]"></div>
+                                <span className="text-xs font-medium text-slate-400">Revenue</span>
                             </div>
                         </div>
-                        <div className="h-[350px] w-full mt-4">
+                        <div className="h-[280px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={revenueChart}>
                                     <defs>
                                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#1062FF" stopOpacity={0.2} />
+                                            <stop offset="5%" stopColor="#1062FF" stopOpacity={0.15} />
                                             <stop offset="95%" stopColor="#1062FF" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
@@ -159,116 +145,71 @@ export default function Dashboard({ stats, overview, revenueChart, recentActivit
                                         tickFormatter={(str) => format(parseISO(str), 'MMM d')}
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }}
-                                        dy={15}
+                                        tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 500 }}
+                                        dy={10}
                                     />
                                     <YAxis
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }}
+                                        tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 500 }}
                                         tickFormatter={(val) => `${val}`}
                                     />
                                     <Tooltip
-                                        contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.15)', padding: '16px', background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
-                                        itemStyle={{ fontSize: '13px', fontWeight: 'bold', color: '#1062FF' }}
-                                        labelStyle={{ fontSize: '10px', fontWeight: '900', color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.1em' }}
-                                        formatter={(val) => [`LKR ${parseFloat(val).toLocaleString()}`, 'Processed Revenue']}
+                                        contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 30px rgb(0 0 0 / 0.08)', padding: '12px', background: '#fff' }}
+                                        itemStyle={{ fontSize: '13px', fontWeight: '600', color: '#1062FF' }}
+                                        labelStyle={{ fontSize: '11px', fontWeight: '600', color: '#94a3b8', marginBottom: '4px' }}
+                                        formatter={(val) => [`LKR ${parseFloat(val).toLocaleString()}`, 'Revenue']}
                                         labelFormatter={(label) => format(parseISO(label), 'EEEE, MMMM dd')}
                                     />
                                     <Area
                                         type="monotone"
                                         dataKey="total"
                                         stroke="#1062FF"
-                                        strokeWidth={5}
+                                        strokeWidth={2.5}
                                         fillOpacity={1}
                                         fill="url(#colorRevenue)"
-                                        animationDuration={2000}
+                                        animationDuration={1500}
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
-
-                    {/* Temporal Schedule Sidebar */}
-                    <div className="bg-white p-10 rounded-2xl border border-border-gray shadow-sm flex flex-col relative overflow-hidden group">
-                        <div className="flex items-center justify-between mb-10">
-                            <div>
-                                <h3 className="text-xl font-bold text-slate-900 uppercase tracking-tight">Today's Protocol</h3>
-                                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Scheduled clinical interactions</p>
-                            </div>
-                            <Link href={route('appointments.index')} className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-300 hover:text-primary-blue hover:bg-white rounded-xl transition-all border border-border-gray shadow-sm hover:shadow-lg">
-                                <ChevronRight size={20} />
-                            </Link>
-                        </div>
-
-                        <div className="space-y-5 flex-1 overflow-y-auto custom-scrollbar pr-2">
-                            {upcomingSchedule.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-20 text-center">
-                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 border border-slate-100 shadow-inner mb-6">
-                                        <Clock size={32} />
-                                    </div>
-                                    <p className="text-slate-400 font-bold italic text-sm uppercase tracking-widest px-8 leading-relaxed">System scan reveals zero clinical appointments for the current temporal cycle.</p>
-                                </div>
-                            ) : (
-                                upcomingSchedule.map(app => (
-                                    <div key={app.id} className="flex items-center gap-5 p-5 rounded-2xl bg-slate-50/50 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 group/item cursor-pointer">
-                                        <div className="w-14 h-14 rounded-2xl bg-white border border-border-gray shadow-sm flex flex-col items-center justify-center font-bold text-primary-blue group-hover/item:bg-primary-blue group-hover/item:text-white transition-all overflow-hidden relative">
-                                            <div className="absolute inset-0 bg-primary-blue/5 group-hover/item:hidden"></div>
-                                            <span className="text-[9px] uppercase opacity-40 leading-none mb-1">Time</span>
-                                            <span className="text-lg leading-none tracking-tight">{format(parseISO(app.datetime), 'HH:mm')}</span>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="font-bold text-slate-900 text-base truncate uppercase tracking-tight leading-none mb-1.5">{app.pet.name}</h4>
-                                            <div className="flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-primary-blue"></span>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">Dr. {app.vet.last_name}</p>
-                                            </div>
-                                        </div>
-                                        <div className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-white text-orange-600 border border-orange-100 shadow-sm">
-                                            {app.status}
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
                 </div>
 
-                {/* System Audit Intelligence */}
-                <div className="bg-white p-10 rounded-2xl border border-border-gray shadow-sm mb-24">
-                    <div className="mb-12 flex items-center justify-between">
+                {/* Recent Activity */}
+                <div className="bg-white p-6 rounded-xl border border-border-gray shadow-sm mb-6">
+                    <div className="mb-5 flex items-center justify-between">
                         <div>
-                            <h3 className="text-xl font-bold text-slate-900 uppercase tracking-tight">Intelligence Logs</h3>
-                            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Real-time system audit and event synchronization</p>
+                            <h3 className="text-sm font-bold text-slate-900">Recent Activity</h3>
+                            <p className="text-slate-400 text-xs font-medium mt-0.5">Latest system events and case logs</p>
                         </div>
-                        <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 border border-border-gray">
-                            <Activity size={24} />
+                        <div className="w-9 h-9 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 border border-border-gray">
+                            <Activity size={16} />
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {recentActivities.length === 0 ? (
-                            <div className="col-span-full py-20 text-center bg-slate-50/50 rounded-2xl border border-dashed border-border-gray">
-                                <Search size={40} className="mx-auto text-slate-200 mb-4" />
-                                <p className="text-slate-400 font-bold italic text-sm uppercase tracking-widest">Digital silence. No audit logs detected in current session.</p>
+                            <div className="col-span-full py-12 text-center bg-slate-50/50 rounded-xl border border-dashed border-border-gray">
+                                <Search size={28} className="mx-auto text-slate-200 mb-3" />
+                                <p className="text-slate-400 font-medium text-sm">No recent activity found.</p>
                             </div>
                         ) : (
                             recentActivities.map((activity) => {
                                 const IconToRender = activity.icon === 'DollarSign' ? DollarSign : Activity;
                                 return (
-                                    <div key={activity.id} className="flex gap-5 p-6 bg-slate-50/30 rounded-2xl border border-slate-100/50 hover:bg-white hover:shadow-2xl hover:border-primary-blue/20 transition-all duration-500 group relative overflow-hidden">
-                                        <div className="absolute -right-4 -top-4 w-16 h-16 bg-primary-blue/5 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
-                                        <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-slate-400 border border-border-gray group-hover:bg-primary-blue group-hover:text-white group-hover:border-transparent group-hover:rotate-6 transition-all shrink-0 shadow-sm relative z-10">
-                                            <IconToRender size={22} />
+                                    <div key={activity.id} className="flex gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100 hover:bg-white hover:shadow-md hover:border-primary-blue/15 transition-all duration-300 group">
+                                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-border-gray group-hover:bg-primary-blue group-hover:text-white group-hover:border-transparent transition-all shrink-0">
+                                            <IconToRender size={17} />
                                         </div>
-                                        <div className="min-w-0 relative z-10 flex-1">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <p className="text-[9px] font-bold text-primary-blue uppercase tracking-[0.2em]">{activity.type}</p>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <p className="text-[10px] font-semibold text-primary-blue uppercase tracking-wide">{activity.type}</p>
                                                 <span className="w-1 h-1 rounded-full bg-slate-200"></span>
-                                                <p className="text-[9px] font-bold text-slate-400 uppercase">{activity.time}</p>
+                                                <p className="text-[10px] font-medium text-slate-400">{activity.time}</p>
                                             </div>
-                                            <h4 className="font-bold text-slate-900 text-base mb-1.5 uppercase tracking-tight leading-tight">{activity.title}</h4>
-                                            <p className="text-slate-500 text-[11px] font-medium leading-relaxed italic line-clamp-2">"{activity.description}"</p>
+                                            <h4 className="font-semibold text-slate-800 text-sm mb-0.5 leading-tight">{activity.title}</h4>
+                                            <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">{activity.description}</p>
                                         </div>
                                     </div>
                                 );

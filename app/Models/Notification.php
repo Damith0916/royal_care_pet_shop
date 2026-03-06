@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\MultiClinicScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
-use App\Traits\MultiClinicScope;
 
 class Notification extends Model
 {
     use MultiClinicScope;
+
     protected $fillable = [
         'clinic_id',
         'user_id',

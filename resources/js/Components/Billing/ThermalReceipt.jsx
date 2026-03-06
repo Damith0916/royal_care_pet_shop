@@ -38,10 +38,10 @@ const ThermalReceipt = forwardRef(({ invoice, clinic }, ref) => {
                     <span>OWNER:</span>
                     <span>{invoice.owner.first_name} {invoice.owner.last_name}</span>
                 </div>
-                {invoice.appointment?.pet && (
+                {invoice.medical_record?.pet && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span>PATIENT:</span>
-                        <span>{invoice.appointment.pet.name}</span>
+                        <span>{invoice.medical_record.pet.name}</span>
                     </div>
                 )}
             </div>

@@ -4,7 +4,6 @@ namespace App\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Scope;
 
 trait MultiClinicScope
 {
@@ -18,7 +17,7 @@ trait MultiClinicScope
 
         static::addGlobalScope('clinic', function (Builder $builder) {
             if (session()->has('active_clinic_id')) {
-                $column = $builder->getModel()->getTable() . '.clinic_id';
+                $column = $builder->getModel()->getTable().'.clinic_id';
                 $builder->where($column, session('active_clinic_id'));
             }
         });

@@ -2,27 +2,27 @@
 
 namespace App\Models;
 
+use App\Traits\MultiClinicScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-use App\Traits\MultiClinicScope;
-
 class Invoice extends Model
 {
     use MultiClinicScope;
+
     protected $fillable = [
         'clinic_id',
         'owner_id',
-        'appointment_id',
+        'invoice_number',
         'invoice_date',
         'total_amount',
         'tax_amount',
         'discount_amount',
         'net_amount',
         'service_charge',
-        'reason_for_visit',
         'status',
+        'closed_at',
     ];
 
     protected $casts = [
@@ -31,6 +31,7 @@ class Invoice extends Model
         'tax_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'net_amount' => 'decimal:2',
+        'closed_at' => 'datetime',
     ];
 
     public function clinic(): BelongsTo
@@ -41,11 +42,6 @@ class Invoice extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(Owner::class);
-    }
-
-    public function appointment(): BelongsTo
-    {
-        return $this->belongsTo(Appointment::class);
     }
 
     public function items(): HasMany

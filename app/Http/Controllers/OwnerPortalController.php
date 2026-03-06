@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pet;
 use App\Models\Owner;
-use Illuminate\Http\Request;
+use App\Models\Pet;
 use Inertia\Inertia;
 
 class OwnerPortalController extends Controller
@@ -20,22 +19,22 @@ class OwnerPortalController extends Controller
 
         return Inertia::render('OwnerPortal/Home', [
             'owner' => $owner,
-            'clinic' => \App\Models\Clinic::find($owner->clinic_id)
+            'clinic' => \App\Models\Clinic::find($owner->clinic_id),
         ]);
     }
 
     public function petProfile($uniqueId, Pet $pet)
     {
         $owner = Owner::findOrFail($uniqueId);
-        
+
         if ($pet->owner_id !== $owner->id) {
             abort(403);
         }
 
         return Inertia::render('OwnerPortal/PetProfile', [
             'owner' => $owner,
-            'pet' => $pet->load(['medicalRecords.vet', 'vaccinations', 'medications', 'appointments']),
-            'clinic' => \App\Models\Clinic::find($owner->clinic_id)
+            'pet' => $pet->load(['medicalRecords.vet', 'vaccinations', 'medications']),
+            'clinic' => \App\Models\Clinic::find($owner->clinic_id),
         ]);
     }
 
@@ -46,7 +45,7 @@ class OwnerPortalController extends Controller
         return Inertia::render('OwnerPortal/Invoices', [
             'owner' => $owner,
             'invoices' => $owner->invoices,
-            'clinic' => \App\Models\Clinic::find($owner->clinic_id)
+            'clinic' => \App\Models\Clinic::find($owner->clinic_id),
         ]);
     }
 }

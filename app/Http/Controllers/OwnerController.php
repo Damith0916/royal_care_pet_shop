@@ -11,14 +11,16 @@ class OwnerController extends Controller
     public function index()
     {
         return Inertia::render('Owners/Index', [
-            'owners' => Owner::withCount('pets')->get()
+            'owners' => Owner::withCount('pets')->get(),
         ]);
     }
 
     public function show(Owner $owner)
     {
         return Inertia::render('Owners/Show', [
-            'owner' => $owner->load(['pets.species', 'pets.breed', 'appointments.pet', 'invoices'])
+            'owner' => $owner->load(['pets.species', 'pets.breed', 'invoices' => function ($query) {
+                $query->has('medicalRecord')->with(['payments', 'items', 'medicalRecord.pet']);
+            }]),
         ]);
     }
 
@@ -32,7 +34,7 @@ class OwnerController extends Controller
             'address' => 'nullable|string',
         ]);
 
-        $validated['unique_owner_code'] = 'OWN-' . strtoupper(substr(uniqid(), -6));
+        $validated['unique_owner_code'] = 'OWN-'.strtoupper(substr(uniqid(), -6));
         $validated['portal_access_enabled'] = true;
 
         Owner::create($validated);
@@ -45,7 +47,7 @@ class OwnerController extends Controller
         $validated = $request->validate([
             'first_name' => 'sometimes|string|max:255',
             'last_name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:owners,email,' . $owner->id,
+            'email' => 'sometimes|email|unique:owners,email,'.$owner->id,
             'phone' => 'sometimes|string|max:20',
             'address' => 'nullable|string',
         ]);
@@ -58,6 +60,7 @@ class OwnerController extends Controller
     public function destroy(Owner $owner)
     {
         $owner->delete();
+
         return redirect()->back()->with('success', 'Owner and their pet records removed.');
     }
 }

@@ -58,6 +58,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
+
         return redirect()->back()->with('success', 'Product removed from inventory.');
     }
 
@@ -65,6 +66,7 @@ class ProductController extends Controller
     {
         $validated = $request->validate(['name' => 'required|string|max:255']);
         ProductCategory::create($validated);
+
         return redirect()->back()->with('success', 'Category added.');
     }
 
@@ -72,22 +74,40 @@ class ProductController extends Controller
     {
         $validated = $request->validate(['name' => 'required|string|max:255']);
         $category->update($validated);
+
         return redirect()->back()->with('success', 'Category updated.');
     }
 
     public function destroyCategory(ProductCategory $category)
     {
         $category->delete();
+
         return redirect()->back()->with('success', 'Category deleted.');
     }
 
     public function restock(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'quantity' => 'required|integer|min:1'
+            'quantity' => 'required|integer|min:1',
         ]);
-        
+
         $product->increment('stock_quantity', $validated['quantity']);
+
         return redirect()->back()->with('success', 'Stock updated.');
+    }
+
+    public function bulkRestock(Request $request)
+    {
+        $validated = $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        foreach ($validated['items'] as $item) {
+            Product::where('id', $item['id'])->increment('stock_quantity', $item['quantity']);
+        }
+
+        return redirect()->back()->with('success', 'Bulk stock updated.');
     }
 }

@@ -15,19 +15,20 @@ import {
     X as XIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ConfirmationModal from '../../Components/ConfirmationModal';
 
 const Modal = ({ isOpen, onClose, title, children }) => {
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border-gray">
-                <div className="px-8 py-6 border-b border-border-gray flex items-center justify-between bg-slate-50/50">
-                    <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight">{title}</h3>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border-gray">
+                <div className="px-6 py-4 border-b border-border-gray flex items-center justify-between bg-slate-50/50">
+                    <h3 className="text-sm font-bold text-slate-900">{title}</h3>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-all text-slate-400">
-                        <XIcon size={20} />
+                        <XIcon size={18} />
                     </button>
                 </div>
-                <div className="p-8 max-h-[85vh] overflow-y-auto custom-scrollbar">
+                <div className="p-6 max-h-[85vh] overflow-y-auto custom-scrollbar">
                     {children}
                 </div>
             </div>
@@ -38,6 +39,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 export default function OwnersIndex({ owners }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null, name: '' });
 
     const { data, setData, post, processing, reset, errors } = useForm({
         first_name: '',
@@ -67,189 +69,223 @@ export default function OwnersIndex({ owners }) {
         <AppLayout>
             <Head title="Pet Owners" />
 
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2 uppercase tracking-wide">Pet Owners</h1>
-                    <p className="text-sm font-medium text-slate-500">Manage client information and contact details.</p>
+                    <h1 className="text-xl font-bold text-slate-900">Pet Owners</h1>
+                    <p className="text-slate-500 text-sm mt-0.5">Manage clinic clients and their registered pets.</p>
                 </div>
 
                 <button
                     onClick={() => setShowRegisterModal(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-bold text-sm shadow-[0_8px_16px_rgba(16,98,255,0.2)] transition-all hover:-translate-y-0.5"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-semibold text-sm shadow-[0_4px_12px_rgba(16,98,255,0.2)] transition-all hover:-translate-y-0.5"
                 >
-                    <Plus size={18} />
-                    Register New Owner
+                    <Plus size={16} />
+                    Add Owner
                 </button>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4 mb-10">
-                <div className="relative flex-1 max-w-xl">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <div className="flex flex-col md:flex-row gap-3 mb-6">
+                <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                     <input
                         type="text"
-                        placeholder="Search by name, phone or email..."
+                        placeholder="Search by name or phone..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full bg-white border border-border-gray pl-11 pr-4 py-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-primary-blue/10 outline-none shadow-sm transition-all"
+                        className="w-full bg-white border border-slate-200 pl-9 pr-4 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none shadow-sm transition-all text-slate-900"
                     />
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredOwners.map(owner => (
                     <div
                         key={owner.id}
-                        className="bg-white rounded-2xl border border-border-gray p-0 shadow-sm hover:shadow-2xl hover:border-primary-blue/20 transition-all duration-500 group overflow-hidden flex flex-col"
+                        className="card-interactive bg-white overflow-hidden flex flex-col group"
                     >
-                        {/* High-Contrast Header Strip */}
-                        <div className="bg-slate-50/50 p-6 border-b border-slate-50 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-white border border-border-gray text-primary-blue flex items-center justify-center font-black text-lg shadow-sm group-hover:bg-primary-blue group-hover:text-white group-hover:border-primary-blue transition-all">
+                        {/* Card Header */}
+                        <div className="bg-slate-50/60 p-4 border-b border-slate-100 flex items-center justify-between group-hover:bg-slate-50 transition-colors">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-primary-blue flex items-center justify-center font-bold text-base shadow-sm group-hover:bg-primary-blue group-hover:text-white group-hover:border-primary-blue transition-all">
                                     {owner.first_name.charAt(0)}
                                 </div>
                                 <div className="min-w-0">
-                                    <h3 className="text-sm font-black text-slate-900 tracking-tight leading-none truncate uppercase">{owner.first_name} {owner.last_name}</h3>
-                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-1.5">
-                                        <div className="w-1 h-1 rounded-full bg-emerald-500"></div> Active Guardian
-                                    </p>
+                                    <h3 className="text-sm font-bold text-slate-900 leading-none truncate">{owner.first_name} {owner.last_name}</h3>
+                                    <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                        Active
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end">
-                                <div className="text-[10px] font-black text-primary-blue bg-blue-50 px-2.5 py-1 rounded-lg uppercase tracking-tighter border border-blue-100 flex items-center gap-1.5">
-                                    <PawPrint size={10} /> {owner.pets_count}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-6 space-y-5 flex-1 bg-white">
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-4 group/info">
-                                    <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover/info:bg-white transition-colors">
-                                        <Phone size={14} className="text-slate-400 group-hover/info:text-primary-blue" />
-                                    </div>
-                                    <span className="text-xs font-bold text-slate-700">{owner.phone}</span>
-                                </div>
-                                <div className="flex items-center gap-4 group/info">
-                                    <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover/info:bg-white transition-colors">
-                                        <Mail size={14} className="text-slate-400 group-hover/info:text-primary-blue" />
-                                    </div>
-                                    <span className="text-xs font-bold text-slate-700 truncate">{owner.email}</span>
-                                </div>
-                                <div className="flex items-center gap-4 group/info">
-                                    <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover/info:bg-white transition-colors">
-                                        <MapPin size={14} className="text-slate-400 group-hover/info:text-primary-blue" />
-                                    </div>
-                                    <span className="text-xs font-bold text-slate-700 truncate">{owner.address || 'No location data'}</span>
-                                </div>
+                            <div className="text-xs font-semibold text-primary-blue bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100 flex items-center gap-1">
+                                <PawPrint size={10} /> {owner.pets_count} Pets
                             </div>
                         </div>
 
-                        <div className="p-4 bg-slate-50/30 border-t border-slate-50 grid grid-cols-5 gap-2">
+                        <div className="p-4 space-y-2.5 flex-1 bg-white">
+                            <div className="flex items-center gap-3">
+                                <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                    <Phone size={12} className="text-slate-400" />
+                                </div>
+                                <span className="text-sm text-slate-700 font-medium">{owner.phone}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                    <Mail size={12} className="text-slate-400" />
+                                </div>
+                                <span className="text-sm text-slate-700 truncate font-medium">{owner.email}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                    <MapPin size={12} className="text-slate-400" />
+                                </div>
+                                <span className="text-sm text-slate-700 truncate font-medium">{owner.address || 'No address provided'}</span>
+                            </div>
+                        </div>
+
+                        <div className="p-3 bg-slate-50/50 border-t border-slate-100 grid grid-cols-5 gap-2">
                             <Link
                                 href={route('owners.show', owner.id)}
-                                className="col-span-4 py-3 bg-white hover:bg-slate-900 border border-border-gray hover:border-slate-900 text-slate-900 hover:text-white rounded-xl font-black text-[9px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 shadow-sm group/btn active:scale-95"
+                                className="col-span-4 py-2.5 bg-white hover:bg-slate-900 border border-slate-200 hover:border-slate-900 text-slate-900 hover:text-white rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm group/btn active:scale-95"
                             >
-                                Intelligence Hub
-                                <ChevronRight size={12} className="group-hover/btn:translate-x-1 transition-transform" />
+                                View Profile
+                                <ChevronRight size={12} className="group-hover/btn:translate-x-0.5 transition-transform" />
                             </Link>
                             <button
-                                onClick={() => {
-                                    if (confirm('Critical Action: Purge owner profile and all associated data vectors?')) {
-                                        router.delete(route('owners.destroy', owner.id));
-                                    }
-                                }}
-                                className="col-span-1 p-3 text-slate-300 hover:text-danger hover:bg-white border border-transparent hover:border-danger/20 rounded-xl transition-all flex items-center justify-center"
-                                title="Purge Record"
+                                onClick={() => setConfirmDelete({ open: true, id: owner.id, name: `${owner.first_name} ${owner.last_name}` })}
+                                className="col-span-1 p-2 text-slate-400 hover:text-danger hover:bg-white border border-transparent hover:border-danger/10 rounded-xl transition-all flex items-center justify-center"
+                                title="Delete Owner"
                             >
-                                <XCircle size={18} />
+                                <XCircle size={16} />
                             </button>
                         </div>
                     </div>
                 ))}
             </div>
 
+            {filteredOwners.length === 0 && (
+                <div className="py-16 text-center">
+                    <div className="w-14 h-14 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mx-auto mb-4 border border-slate-100">
+                        <User size={28} />
+                    </div>
+                    <h3 className="text-base font-semibold text-slate-700 mb-1">No Owners Found</h3>
+                    <p className="text-sm text-slate-400 max-w-md mx-auto">No owners match your search criteria.</p>
+                </div>
+            )}
+
             <Modal
                 isOpen={showRegisterModal}
                 onClose={() => setShowRegisterModal(false)}
                 title="Register Pet Owner"
             >
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">First Name</label>
+                <form
+                    onSubmit={handleSubmit}
+                    className="space-y-4"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const form = e.currentTarget;
+                            const focusableElements = Array.from(
+                                form.querySelectorAll('input, select, textarea, button[type="submit"]')
+                            ).filter(el => !el.disabled && el.tabIndex !== -1);
+
+                            const index = focusableElements.indexOf(e.target);
+                            if (index > -1 && index < focusableElements.length - 1) {
+                                focusableElements[index + 1].focus();
+                            } else if (index === focusableElements.length - 1) {
+                                // If it's the submit button, let it submit
+                                form.requestSubmit();
+                            }
+                        }
+                    }}
+                >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">First Name</label>
                             <input
+                                autoFocus
                                 type="text"
                                 value={data.first_name}
                                 onChange={e => setData('first_name', e.target.value)}
-                                className="w-full bg-slate-50 border border-border-gray px-4 py-3 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none"
+                                className="w-full bg-slate-50 border border-border-gray px-3.5 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none"
                                 placeholder="John"
                                 required
                             />
-                            {errors.first_name && <p className="text-[10px] font-bold text-danger mt-1">{errors.first_name}</p>}
+                            {errors.first_name && <p className="text-xs text-danger mt-1">{errors.first_name}</p>}
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Last Name</label>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Last Name</label>
                             <input
                                 type="text"
                                 value={data.last_name}
                                 onChange={e => setData('last_name', e.target.value)}
-                                className="w-full bg-slate-50 border border-border-gray px-4 py-3 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none"
+                                className="w-full bg-slate-50 border border-border-gray px-3.5 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none"
                                 placeholder="Doe"
                                 required
                             />
-                            {errors.last_name && <p className="text-[10px] font-bold text-danger mt-1">{errors.last_name}</p>}
+                            {errors.last_name && <p className="text-xs text-danger mt-1">{errors.last_name}</p>}
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Phone</label>
                             <input
                                 type="text"
                                 value={data.phone}
                                 onChange={e => setData('phone', e.target.value)}
-                                className="w-full bg-slate-50 border border-border-gray px-4 py-3 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none"
+                                className="w-full bg-slate-50 border border-border-gray px-3.5 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none"
                                 placeholder="+94 77 123 4567"
                                 required
                             />
-                            {errors.phone && <p className="text-[10px] font-bold text-danger mt-1">{errors.phone}</p>}
+                            {errors.phone && <p className="text-xs text-danger mt-1">{errors.phone}</p>}
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</label>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</label>
                             <input
                                 type="email"
                                 value={data.email}
                                 onChange={e => setData('email', e.target.value)}
-                                className="w-full bg-slate-50 border border-border-gray px-4 py-3 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none"
+                                className="w-full bg-slate-50 border border-border-gray px-3.5 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none"
                                 placeholder="john@example.com"
                                 required
                             />
-                            {errors.email && <p className="text-[10px] font-bold text-danger mt-1">{errors.email}</p>}
+                            {errors.email && <p className="text-xs text-danger mt-1">{errors.email}</p>}
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Address</label>
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Address</label>
                         <textarea
                             value={data.address}
                             onChange={e => setData('address', e.target.value)}
-                            className="w-full bg-slate-50 border border-border-gray px-4 py-3 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none h-24 resize-none"
+                            className="w-full bg-slate-50 border border-border-gray px-3.5 py-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-blue/10 outline-none h-20 resize-none"
                             placeholder="Full residential address..."
                         />
                     </div>
 
-                    <div className="pt-6 border-t border-border-gray text-right">
+                    <div className="pt-4 border-t border-border-gray text-right">
                         <button
                             type="submit"
                             disabled={processing}
-                            className="px-10 py-4 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-[0_8px_16px_rgba(16,98,255,0.2)] transition-all disabled:opacity-50 flex items-center gap-2 ml-auto"
+                            className="px-6 py-2.5 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-semibold text-sm shadow-[0_4px_12px_rgba(16,98,255,0.2)] transition-all disabled:opacity-50 flex items-center gap-2 ml-auto"
                         >
-                            {processing ? <Loader2 className="animate-spin" size={18} /> : null}
+                            {processing ? <Loader2 className="animate-spin" size={16} /> : null}
                             {processing ? 'Registering...' : 'Register Owner'}
                         </button>
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmationModal
+                isOpen={confirmDelete.open}
+                onClose={() => setConfirmDelete({ ...confirmDelete, open: false })}
+                onConfirm={() => router.delete(route('owners.destroy', confirmDelete.id))}
+                title="Permanently Remove Client"
+                message={`Are you sure you want to remove ${confirmDelete.name} and all their registered pets? This will permanently delete all medical history and invoices for this client.`}
+                confirmText="Delete Client Data"
+                type="danger"
+            />
         </AppLayout>
     );
 }

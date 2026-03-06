@@ -7,6 +7,7 @@ import {
     Clock, X, Plus, Banknote, ShieldCheck, Mail, Phone, MapPin, PawPrint
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 import ThermalReceipt from '../../Components/Billing/ThermalReceipt';
 
 const StatusBadge = ({ status }) => {
@@ -25,6 +26,13 @@ const StatusBadge = ({ status }) => {
 
 export default function BillingShow({ invoice, clinic }) {
     const thermalRef = useRef();
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+    const { data, setData, post, processing, reset, errors } = useForm({
+        amount: invoice.net_amount - invoice.payments.reduce((s, p) => s + parseFloat(p.amount_paid), 0),
+        payment_method: 'Cash',
+    });
+
     const handleThermalPrint = () => {
         if (invoice.status !== 'Paid') {
             alert('Cannot print receipt until invoice is fully PAID.');
@@ -46,6 +54,18 @@ export default function BillingShow({ invoice, clinic }) {
             printWindow.close();
         }, 250);
     };
+
+    const submitPayment = (e) => {
+        e.preventDefault();
+        post(route('billing.payment', invoice.id), {
+            onSuccess: () => {
+                setShowPaymentModal(false);
+                reset();
+            },
+        });
+    };
+
+    const remainingBalance = parseFloat(invoice.net_amount) - invoice.payments.reduce((s, p) => s + parseFloat(p.amount_paid), 0);
 
     return (
         <AppLayout>
@@ -134,19 +154,19 @@ export default function BillingShow({ invoice, clinic }) {
                                 </div>
                                 <div className="space-y-4">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Patient Context</p>
-                                    {invoice.appointment?.pet ? (
-                                        <Link href={route('pets.show', invoice.appointment.pet.id)} className="flex items-center gap-4 group bg-slate-50 p-4 rounded-xl border border-border-gray hover:border-primary-blue/30 transition-all shadow-sm">
+                                    {invoice.medical_record?.pet ? (
+                                        <Link href={route('pets.show', invoice.medical_record.pet.id)} className="flex items-center gap-4 group bg-slate-50 p-4 rounded-xl border border-border-gray hover:border-primary-blue/30 transition-all shadow-sm">
                                             <div className="w-12 h-12 rounded-lg bg-blue-50 text-primary-blue flex items-center justify-center font-bold transition-all group-hover:scale-110">
                                                 <PawPrint size={24} />
                                             </div>
                                             <div>
-                                                <h4 className="font-bold text-slate-900 group-hover:text-primary-blue transition-colors uppercase tracking-tight leading-none mb-1">{invoice.appointment.pet.name}</h4>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{invoice.appointment.pet.species?.name || 'Pet'}</p>
+                                                <h4 className="font-bold text-slate-900 group-hover:text-primary-blue transition-colors uppercase tracking-tight leading-none mb-1">{invoice.medical_record.pet.name}</h4>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{invoice.medical_record.pet.species?.name || 'Patient'}</p>
                                             </div>
                                         </Link>
                                     ) : (
                                         <div className="p-4 bg-slate-50 rounded-xl border border-dashed border-border-gray text-center">
-                                            <p className="text-sm font-bold text-slate-400 italic">Manual Billing (No patient record)</p>
+                                            <p className="text-sm font-bold text-slate-400 italic">Clinical context not available</p>
                                         </div>
                                     )}
                                 </div>
@@ -251,11 +271,75 @@ export default function BillingShow({ invoice, clinic }) {
                                 )}
                             </div>
                             {invoice.status !== 'Paid' && (
-                                <button className="w-full mt-8 py-4 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-xl shadow-blue-500/20 active:scale-95">
+                                <button
+                                    onClick={() => setShowPaymentModal(true)}
+                                    className="w-full mt-8 py-4 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-xl shadow-blue-500/20 active:scale-95"
+                                >
                                     Record New Payment
                                 </button>
                             )}
                         </div>
+
+                        {/* Payment Modal */}
+                        <AnimatePresence>
+                            {showPaymentModal && (
+                                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-200/60"
+                                    >
+                                        <div className="p-8 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 bg-primary-blue text-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+                                                    <Banknote size={22} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-sm font-bold text-slate-900 tracking-tight">Record Payment</h3>
+                                                    <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest opacity-70">Remaining: LKR {remainingBalance.toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => setShowPaymentModal(false)} className="p-2.5 text-slate-700 hover:text-red-500 rounded-xl hover:bg-red-50 transition-all active:scale-95"><X size={20} /></button>
+                                        </div>
+                                        <form onSubmit={submitPayment} className="p-8 space-y-6">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-bold text-slate-600 uppercase tracking-widest ml-1">Payment Amount (LKR)</label>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    required
+                                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary-blue/5 focus:bg-white focus:border-primary-blue/30 outline-none transition-all"
+                                                    value={data.amount}
+                                                    onChange={e => setData('amount', e.target.value)}
+                                                />
+                                                {errors.amount && <p className="text-red-500 text-[10px] mt-1 font-bold italic">{errors.amount}</p>}
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-bold text-slate-600 uppercase tracking-widest ml-1">Payment Method</label>
+                                                <select
+                                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary-blue/5 focus:bg-white focus:border-primary-blue/30 outline-none transition-all appearance-none"
+                                                    value={data.payment_method}
+                                                    onChange={e => setData('payment_method', e.target.value)}
+                                                >
+                                                    <option value="Cash">Cash</option>
+                                                    <option value="Card">Credit/Debit Card</option>
+                                                    <option value="Transfer">Bank Transfer</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                            </div>
+                                            <button
+                                                type="submit"
+                                                disabled={processing}
+                                                className="w-full py-5 bg-primary-blue hover:bg-primary-dark text-white rounded-xl font-bold uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 transition-all active:scale-[0.98] text-[10px] disabled:opacity-50"
+                                            >
+                                                {processing ? 'Processing...' : 'Confirm Payment'}
+                                            </button>
+                                        </form>
+                                    </motion.div>
+                                </div>
+                            )}
+                        </AnimatePresence>
 
                         {/* Audit Info */}
                         <div className="bg-white rounded-xl p-8 border border-border-gray shadow-sm text-center">

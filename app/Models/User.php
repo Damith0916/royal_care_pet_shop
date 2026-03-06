@@ -3,18 +3,17 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Traits\MultiClinicScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-use App\Traits\MultiClinicScope;
-
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, MultiClinicScope;
+    use HasApiTokens, HasFactory, MultiClinicScope, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -72,7 +71,10 @@ class User extends Authenticatable
 
     public function hasPermission(string $permissionName): bool
     {
-        if (!$this->role) return false;
+        if (! $this->role) {
+            return false;
+        }
+
         return $this->role->permissions()->where('name', $permissionName)->exists();
     }
 }
